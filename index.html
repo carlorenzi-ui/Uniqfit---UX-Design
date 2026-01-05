@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>UniQFit</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+</head>
+<body>
+
+    <div class="phone-mockup">
+        <div class="phone-notch"></div>
+        <div class="phone-screen">
+            
+            <div id="login-overlay">
+                <div class="login-content">
+                    <img src="logo.png" class="login-logo" alt="U" onerror="this.style.display='none'">
+                    <h1>UniQFit</h1>
+                    <p>Accedi al tuo percorso</p>
+                    <div class="login-form">
+                        <input type="email" id="login-email" value="mariorossi@gmail.com" placeholder="Email">
+                        <input type="password" id="login-pass" value="mario1234" placeholder="Password">
+                        <button id="btn-login">ACCEDI</button>
+                        <button id="btn-register">REGISTRATI</button>
+                    </div>
+                    <p id="login-error"></p>
+                </div>
+            </div>
+
+            <div class="app-header">
+                <span class="left-icon"></span> 
+                <div class="app-title">
+                    <img src="logo.png" alt="U" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'"> 
+                    <span>UniQFit</span>
+                </div>
+                <span class="right-icon"><i class="fas fa-ellipsis-v"></i></span>
+            </div>
+
+            <div class="app-content">
+                
+                <div id="coach-section" class="app-section active">
+                    <div class="chat-messages" id="chat-messages">
+                        <div class="message bot">Ciao Mario! Bentornato. Hai bisogno di aiuto ? Chiedimi tutto quello che vuoi riguardo allenamento e alimentazione!</div>
+                    </div>
+                    <div class="chat-input">
+                        <input type="text" id="user-input" placeholder="Scrivi al tuo coach...">
+                        <button id="send-btn"><i class="fas fa-arrow-up"></i></button>
+                    </div>
+                </div>
+
+                <div id="dieta-section" class="app-section">
+                    <div class="section-header"><h2>Oggi</h2><p>Obiettivo: 2400 kcal</p></div>
+                    <div class="macro-summary">
+                        <div class="macro-item"><span class="macro-val">120g</span><span class="macro-label">Prot</span></div>
+                        <div class="macro-item"><span class="macro-val">250g</span><span class="macro-label">Carb</span></div>
+                        <div class="macro-item"><span class="macro-val">65g</span><span class="macro-label">Gras</span></div>
+                    </div>
+                    
+                    <div class="meal-card">
+                        <div class="meal-header"><span class="meal-time">08:00 - Colazione</span><span class="meal-cal">450 kcal</span></div>
+                        <div class="meal-name">Porridge Proteico</div>
+                        <div class="meal-desc">Fiocchi d'avena (60g), Whey Cioccolato (30g), Banana.</div>
+                    </div>
+                    <div class="meal-card">
+                        <div class="meal-header"><span class="meal-time">11:00 - Spuntino</span><span class="meal-cal">150 kcal</span></div>
+                        <div class="meal-name">Frutta Secca</div>
+                        <div class="meal-desc">Noci (20g) e una mela verde.</div>
+                    </div>
+                    <div class="meal-card">
+                        <div class="meal-header"><span class="meal-time">13:00 - Pranzo</span><span class="meal-cal">650 kcal</span></div>
+                        <div class="meal-name">Riso e Pollo al Curry</div>
+                        <div class="meal-desc">Riso Basmati (100g), Petto di Pollo (150g), Salsa Curry.</div>
+                    </div>
+                    <div class="meal-card">
+                        <div class="meal-header"><span class="meal-time">16:30 - Merenda</span><span class="meal-cal">200 kcal</span></div>
+                        <div class="meal-name">Yogurt Greco</div>
+                        <div class="meal-desc">Yogurt 0% (170g) con un cucchiaino di miele.</div>
+                    </div>
+                    <div class="meal-card">
+                        <div class="meal-header"><span class="meal-time">20:30 - Cena</span><span class="meal-cal">500 kcal</span></div>
+                        <div class="meal-name">Salmone e Patate</div>
+                        <div class="meal-desc">Filetto di Salmone (150g), Patate dolci al forno, Asparagi.</div>
+                    </div>
+                </div>
+
+                <div id="my-workout-section" class="app-section">
+                    <div class="workout-today-header">
+                        <div class="workout-text">
+                            <h3>Leg Day - Hypertrophy</h3><span>60 min • Alta Intensità</span>
+                        </div>
+                        <i class="fas fa-dumbbell"></i>
+                    </div>
+                    
+                    <div class="section-header"><h2>Esercizi</h2></div>
+                    
+                    <div class="exercise-list">
+                        <div class="exercise-item"><div class="ex-info"><h4>Squat con Bilanciere</h4><span>4 Serie x 8-10 Rip</span></div><div class="ex-check checked"></div></div>
+                        <div class="exercise-item"><div class="ex-info"><h4>Leg Press 45°</h4><span>3 Serie x 12 Rip</span></div><div class="ex-check checked"></div></div>
+                        <div class="exercise-item"><div class="ex-info"><h4>Affondi Camminati</h4><span>3 Serie x 12 passi</span></div><div class="ex-check checked"></div></div>
+                        <div class="exercise-item"><div class="ex-info"><h4>Leg Extension</h4><span>3 Serie x 15 Rip (Drop Set)</span></div><div class="ex-check"></div></div>
+                        <div class="exercise-item"><div class="ex-info"><h4>Stacchi Rumeni</h4><span>4 Serie x 10 Rip</span></div><div class="ex-check"></div></div>
+                        <div class="exercise-item"><div class="ex-info"><h4>Calf Raise in piedi</h4><span>4 Serie x 20 Rip</span></div><div class="ex-check"></div></div>
+                    </div>
+
+                   
+                    </div>
+                </div>
+
+                <div id="premade-workouts-section" class="app-section">
+                    <div class="section-header"><h2>Esplora</h2></div>
+                    <div class="tags-container">
+                        <span class="tag active">Tutti</span><span class="tag">Forza</span><span class="tag">Cardio</span><span class="tag">Yoga</span>
+                    </div>
+                    
+                    <div class="plan-card">
+                        <div class="plan-img bg-strength"><span class="plan-badge">AVANZATO</span></div>
+                        <div class="plan-content"><h4>Protocollo Forza Pura</h4><div class="plan-meta"><span><i class="fas fa-fire"></i> Alta Int.</span><span><i class="fas fa-calendar"></i> 8 Sett.</span></div><a href="#" class="plan-btn">Vedi Scheda</a></div>
+                    </div>
+                    
+                    <div class="plan-card">
+                        <div class="plan-img bg-cardio"><span class="plan-badge">PRINCIP.</span></div>
+                        <div class="plan-content"><h4>HIIT Cardio</h4><div class="plan-meta"><span><i class="fas fa-clock"></i> 20 Min.</span><span><i class="fas fa-home"></i> A casa</span></div><a href="#" class="plan-btn">Vedi Scheda</a></div>
+                    </div>
+                    
+                    <div class="plan-card">
+                        <div class="plan-img bg-yoga"><span class="plan-badge">INTERMED.</span></div>
+                        <div class="plan-content"><h4>Mobilità</h4><div class="plan-meta"><span><i class="fas fa-child"></i> Relax</span><span><i class="fas fa-clock"></i> 40 Min.</span></div><a href="#" class="plan-btn">Vedi Scheda</a></div>
+                    </div>
+                </div>
+
+                <div id="profile-section" class="app-section">
+                    <div class="profile-header-card">
+                        <div class="avatar"><i class="fas fa-user"></i></div>
+                        <h2 class="profile-name">Mario Rossi</h2>
+                        <p class="profile-subtitle">Membro Pro da Gen 2024</p>
+                    </div>
+                    <div class="stats-row">
+                        <div class="stat-box"><span class="stat-val">78</span><span class="stat-lbl">Kg</span></div>
+                        <div class="stat-box"><span class="stat-val">180</span><span class="stat-lbl">Cm</span></div>
+                        <div class="stat-box"><span class="stat-val">15%</span><span class="stat-lbl">BF</span></div>
+                    </div>
+                    <div class="settings-list">
+                        <div class="setting-item"><div><i class="fas fa-bullseye"></i> I miei Obiettivi</div><i class="fas fa-chevron-right"></i></div>
+                        <div class="setting-item"><div><i class="fas fa-history"></i> Storico</div><i class="fas fa-chevron-right"></i></div>
+                        <div class="setting-item" id="logout-btn" style="color:red"><div><i class="fas fa-sign-out-alt"></i> Logout</div></div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="bottom-nav">
+                <div class="nav-item" data-section="dieta-section"><i class="fas fa-apple-alt"></i><span>Dieta</span></div>
+                <div class="nav-item" data-section="my-workout-section"><i class="fas fa-running"></i><span>Allen.</span></div>
+                <div class="nav-item coach-center active" data-section="coach-section"><i class="fas fa-brain"></i><span>Coach</span></div>
+                <div class="nav-item" data-section="premade-workouts-section"><i class="fas fa-clipboard-list"></i><span>Schede</span></div>
+                <div class="nav-item" data-section="profile-section"><i class="fas fa-user"></i><span>Profilo</span></div>
+            </div>
+
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
