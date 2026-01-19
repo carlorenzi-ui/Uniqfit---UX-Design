@@ -95,7 +95,7 @@ checks.forEach(check => {
 
 
 // ==========================================
-// 4. MOTORE CHATBOT
+// 4. MOTORE CHATBOT (CON FILTRO ANTI-AD)
 // ==========================================
 
 const chatMessages = document.getElementById('chat-messages');
@@ -181,8 +181,28 @@ async function generateBotResponse() {
 
         if (!response.ok) throw new Error("Errore API");
         
-        const aiResponse = await response.text();
+        let aiResponse = await response.text();
         
+        // --- FILTRO PULIZIA RISPOSTA ---
+        // Rimuoviamo la pubblicità di Pollinations se presente
+        const adMarkers = [
+            "Support Pollinations.AI", 
+            "Pollinations.AI", 
+            "--- **Support"
+        ];
+        
+        // Se troviamo una di queste frasi, tagliamo il testo prima di esse
+        adMarkers.forEach(marker => {
+            if (aiResponse.includes(marker)) {
+                aiResponse = aiResponse.split(marker)[0];
+            }
+        });
+        
+        // Pulisce eventuali trattini finali rimasti
+        aiResponse = aiResponse.trim().replace(/---$/, '').trim();
+
+        // --------------------------------
+
         conversationHistory.push({ role: 'assistant', content: aiResponse });
         
         thinkingMsg.innerHTML = aiResponse;
