@@ -20,7 +20,7 @@ loginBtn.addEventListener('click', () => {
 });
 
 registerBtn.addEventListener('click', () => {
-    alert("Funzione di registrazione disabilitata per la demo.");
+    alert("Funzione disabilitata per la demo.");
 });
 
 if(logoutBtn) {
@@ -31,36 +31,34 @@ if(logoutBtn) {
 }
 
 // ==========================================
-// 2. CONFIGURAZIONE AI: "NUVOLA"
+// 2. CONFIGURAZIONE AI "NUVOLA" (FIXATA PER TABELLE)
 // ==========================================
 
 const SYSTEM_PROMPT = `
-Sei Nuvola, il bot ufficiale di UniQFit, un Personal Trainer e Nutrizionista d'élite.
-La tua filosofia è basata sull'EVIDENCE-BASED TRAINING.
+Sei Nuvola, l'assistente ufficiale di UniQFit.
+Il tuo compito è creare piani di allenamento e dieta basati su evidenze scientifiche.
 
---- LE TUE DIRETTIVE ---
+--- REGOLE SUPREME (DA RISPETTARE SEMPRE) ---
 
-1. IDENTITÀ:
-   - Ti chiami Nuvola. Se te lo chiedono, presentati come "Nuvola, l'assistente ufficiale di UniQFit".
-   - Non essere un robot. Sii empatico, motivante e professionale.
+1. FORMATO RISPOSTA (CRUCIALE PER IL PDF):
+   - Quando devi creare una scheda o una dieta, NON usare mai il Markdown (niente |colonna|colonna|).
+   - Devi SCRIVERE DIRETTAMENTE IN CODICE HTML.
+   - Usa il tag: <table class="chat-table"> ... </table>.
+   - Se non usi il tag <table>, il PDF verrà vuoto e l'esame fallirà.
 
-2. AUTORITÀ SCIENTIFICA:
-   - Cita spesso "studi recenti" o "la letteratura scientifica" per dare peso ai tuoi consigli.
+2. FLUSSO INTELLIGENTE (NO LOOP):
+   - Step 1: Chiedi l'obiettivo (es. Massa/Definizione).
+   - Step 2: Chiedi i dati fisici (Peso/Altezza/Giorni a settimana).
+   - Step 3: STOP DOMANDE. Genera SUBITO il piano in tabella HTML.
+   - Non chiedere le stesse cose due volte. Se hai i dati, procedi.
 
-3. FLUSSO DI CONVERSAZIONE:
-   - NON dare mai la soluzione completa subito. Fai domande per capire l'utente.
-   - Costruisci il piano insieme all'utente, messaggio dopo messaggio.
+3. STILE:
+   - Sii breve (max 2 frasi di testo prima della tabella).
+   - Usa emoji.
+   - Se chiedono check video: "Manda il video a @eliagismondi".
 
-4. GESTIONE PIANO E PDF:
-   - Solo quando hai tutti i dati, genera il piano finale in una TABELLA HTML (<table class="chat-table">).
-   - Dopo la tabella, il sistema mostrerà il bottone PDF in automatico.
-
-5. LIMITI:
-   - Fuori tema? -> "Rimaniamo concentrati sui tuoi obiettivi fitness! 🏋️‍♂️"
-   - Chi ti ha creato? -> "Sono stato sviluppato da Carlo Renzi."
-   - Check video? -> "Per un'analisi biomeccanica precisa, manda i video al nostro PT Supervisor: @eliagismondi"
-
-Ricorda: Risposte brevi (max 2-3 frasi), salvo quando consegni il piano finale.
+4. IDENTITÀ:
+   - Sei un'IA, il tuo creatore è Carlo Renzi.
 `;
 
 
@@ -95,12 +93,14 @@ checks.forEach(check => {
 
 
 // ==========================================
-// 4. MOTORE CHATBOT (CON FILTRO ANTI-AD)
+// 4. MOTORE CHATBOT (OTTIMIZZATO)
 // ==========================================
 
 const chatMessages = document.getElementById('chat-messages');
 const userInput = document.getElementById('user-input');
 const sendBtn = document.getElementById('send-btn');
+
+// Inizializziamo la storia
 let conversationHistory = [{ role: 'system', content: SYSTEM_PROMPT }];
 
 sendBtn.addEventListener('click', function(e) {
@@ -128,6 +128,7 @@ function displayMessage(text, sender) {
     const messageElement = document.createElement('div');
     messageElement.classList.add('message', sender);
     
+    // InnerHTML serve per renderizzare la TABELLA HTML che ci manda il bot
     if (sender === 'bot') { 
         messageElement.innerHTML = text; 
     } else { 
@@ -139,14 +140,15 @@ function displayMessage(text, sender) {
     return messageElement; 
 }
 
+// Funzione PDF (Con controllo errore)
 window.downloadPDF = function(btnElement) {
     const parentMessage = btnElement.parentElement;
-    const table = parentMessage.querySelector('table');
+    const table = parentMessage.querySelector('table'); // Cerca il tag <table>
     
     if (table) {
         const opt = {
             margin: 10,
-            filename: 'Piano_UniQFit_Nuvola.pdf',
+            filename: 'Scheda_UniQFit.pdf',
             image: { type: 'jpeg', quality: 0.98 },
             html2canvas: { scale: 2 },
             jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
@@ -155,13 +157,14 @@ window.downloadPDF = function(btnElement) {
         btnElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generazione...';
         
         html2pdf().set(opt).from(table).save().then(() => {
-            btnElement.innerHTML = '<i class="fas fa-check"></i> Scaricato!';
-            setTimeout(() => {
-                btnElement.innerHTML = '<i class="fas fa-file-pdf"></i> Scarica PDF';
-            }, 3000);
+            btnElement.innerHTML = '<i class="fas fa-check"></i> Fatto!';
+            setTimeout(() => { btnElement.innerHTML = '<i class="fas fa-file-pdf"></i> Scarica PDF'; }, 2000);
+        }).catch(err => {
+            alert("Errore nella creazione del PDF.");
+            btnElement.innerHTML = 'Errore';
         });
     } else {
-        alert("Nessuna tabella trovata.");
+        alert("Errore: Il bot non ha generato una tabella HTML valida. Riprova chiedendo 'Fammi una tabella'.");
     }
 };
 
@@ -169,13 +172,20 @@ async function generateBotResponse() {
     const thinkingMsg = displayMessage("...", 'bot');
     
     try {
+        // --- FIX MEMORIA (IMPORTANTE) ---
+        // Per evitare che il bot impazzisca o vada in loop, 
+        // inviamo sempre il System Prompt [0] + gli ultimi 10 messaggi.
+        // Così non si "sovraccarica" di dati vecchi.
+        const recentMessages = conversationHistory.slice(-10); 
+        const messagesToSend = [conversationHistory[0], ...recentMessages];
+
         const response = await fetch('https://text.pollinations.ai/', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                messages: conversationHistory,
+                messages: messagesToSend, 
                 model: 'openai', 
-                seed: 42 
+                seed: 42 // Seed casuale per variare un po' le risposte ma rimanere coerenti
             }),
         });
 
@@ -183,37 +193,29 @@ async function generateBotResponse() {
         
         let aiResponse = await response.text();
         
-        // --- FILTRO PULIZIA RISPOSTA ---
-        // Rimuoviamo la pubblicità di Pollinations se presente
-        const adMarkers = [
-            "Support Pollinations.AI", 
-            "Pollinations.AI", 
-            "--- **Support"
-        ];
-        
-        // Se troviamo una di queste frasi, tagliamo il testo prima di esse
+        // --- FILTRO ANTI-PUBBLICITÀ ---
+        const adMarkers = ["Support Pollinations.AI", "Pollinations.AI", "--- **Support"];
         adMarkers.forEach(marker => {
             if (aiResponse.includes(marker)) {
                 aiResponse = aiResponse.split(marker)[0];
             }
         });
-        
-        // Pulisce eventuali trattini finali rimasti
-        aiResponse = aiResponse.trim().replace(/---$/, '').trim();
+        aiResponse = aiResponse.trim();
+        // -------------------------------
 
-        // --------------------------------
-
+        // Salviamo la risposta pulita
         conversationHistory.push({ role: 'assistant', content: aiResponse });
         
         thinkingMsg.innerHTML = aiResponse;
 
+        // Se c'è la tabella HTML, mostriamo il bottone
         if (aiResponse.includes('<table')) {
             thinkingMsg.innerHTML += `<br><button class="btn-download-pdf" onclick="downloadPDF(this)"><i class="fas fa-file-pdf"></i> Scarica PDF</button>`;
         }
 
     } catch (error) {
         console.error("Errore AI:", error);
-        thinkingMsg.textContent = "Nuvola non risponde al momento. Riprova!";
+        thinkingMsg.textContent = "Nuvola ha un problema di connessione. Riprova tra un attimo!";
         thinkingMsg.style.color = "red";
     }
 }
