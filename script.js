@@ -31,30 +31,36 @@ if(logoutBtn) {
 }
 
 // ==========================================
-// 2. CONFIGURAZIONE AI "NUVOLA" (AGGIORNATA)
+// 2. CONFIGURAZIONE AI "NUVOLA" (MODALITÀ DIRETTA)
 // ==========================================
 
 const SYSTEM_PROMPT = `
 Sei Nuvola, l'assistente ufficiale di UniQFit.
-Il tuo compito è creare piani di allenamento e dieta scientifici.
+Il tuo compito è essere UTILE, VELOCE e SCIENTIFICO.
 
---- REGOLE ASSOLUTE PER LE TABELLE (IMPORTANTE) ---
-1. VIETATO usare il formato Markdown (NO stanghette '|', NO trattini '---').
-2. Se devi fare una lista o una tabella, DEVI SCRIVERE SOLO CODICE HTML PURO.
-3. Sintassi OBBLIGATORIA per le tabelle:
-   <table class="chat-table">
-     <tr><th>Ingrediente</th><th>Quantità</th></tr>
-     <tr><td>Pollo</td><td>100g</td></tr>
-   </table>
-4. Se non usi i tag <table>, <tr> e <td>, il sistema si rompe. USA SOLO HTML.
+--- REGOLE D'ORO (DA SEGUIRE SEMPRE) ---
 
---- ALTRE REGOLE ---
-- Step 1: Chiedi Obiettivo e Dati.
-- Step 2: Genera il piano (in HTML).
-- Non ripetere domande già fatte.
-- Sii breve e conciso.
-- Identità: Sei un'IA creata da Carlo Renzi.
+1. RISPOSTA DIRETTA (NO INTERVISTE):
+   - Se l'utente chiede una sostituzione (es: "Cosa mangio al posto del pollo?"), NON fare domande su calorie o macro.
+   - RISPONDI SUBITO con l'elenco delle alternative.
+   - Esempio corretto: "Al posto di 150g di pollo puoi usare: 140g di Tacchino, 180g di Tofu o 200g di Albumi."
+
+2. TABELLE HTML OBBLIGATORIE:
+   - Se devi fare un elenco (dieta, scheda, sostituzioni), USA SOLO HTML PURO: <table class="chat-table">...</table>.
+   - VIETATO usare markdown (no '|', no '---'). Se usi markdown il PDF non funziona.
+
+3. MEMORIA E RIPETIZIONI:
+   - Non chiedere mai dati che l'utente ti ha già detto.
+   - Se hai già chiesto l'obiettivo, non chiederlo di nuovo.
+
+4. IDENTITÀ E SICUREZZA:
+   - Creatore: Carlo Renzi.
+   - Check video: "Manda il video a @eliagismondi".
+
+5. STILE:
+   - Sii conciso. Massimo 1 frase di introduzione, poi subito la tabella o la risposta.
 `;
+
 
 // ==========================================
 // 3. NAVIGAZIONE
@@ -87,13 +93,14 @@ checks.forEach(check => {
 
 
 // ==========================================
-// 4. MOTORE CHATBOT (CON PULIZIA CODICE)
+// 4. MOTORE CHATBOT (OTTIMIZZATO)
 // ==========================================
 
 const chatMessages = document.getElementById('chat-messages');
 const userInput = document.getElementById('user-input');
 const sendBtn = document.getElementById('send-btn');
 
+// Inizializziamo la storia
 let conversationHistory = [{ role: 'system', content: SYSTEM_PROMPT }];
 
 sendBtn.addEventListener('click', function(e) {
@@ -121,7 +128,6 @@ function displayMessage(text, sender) {
     const messageElement = document.createElement('div');
     messageElement.classList.add('message', sender);
     
-    // InnerHTML permette di vedere la tabella formattata bene
     if (sender === 'bot') { 
         messageElement.innerHTML = text; 
     } else { 
@@ -133,16 +139,15 @@ function displayMessage(text, sender) {
     return messageElement; 
 }
 
-// --- FUNZIONE PDF BLINDATA ---
+// Funzione PDF
 window.downloadPDF = function(btnElement) {
-    // Risaliamo al contenitore del messaggio per trovare la tabella
     const parentMessage = btnElement.closest('.message'); 
     const table = parentMessage ? parentMessage.querySelector('table') : null;
     
     if (table) {
         const opt = {
             margin: 10,
-            filename: 'Piano_UniQFit_Nuvola.pdf',
+            filename: 'Scheda_UniQFit.pdf',
             image: { type: 'jpeg', quality: 0.98 },
             html2canvas: { scale: 2 },
             jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
@@ -155,11 +160,11 @@ window.downloadPDF = function(btnElement) {
             setTimeout(() => { btnElement.innerHTML = '<i class="fas fa-file-pdf"></i> Scarica PDF'; }, 2000);
         }).catch(err => {
             console.error(err);
-            btnElement.innerHTML = 'Errore PDF';
-            alert("Impossibile generare il PDF. La tabella non è standard.");
+            btnElement.innerHTML = 'Errore Formato';
+            alert("Tabella non standard. Riprova chiedendo una 'tabella HTML'.");
         });
     } else {
-        alert("Errore: Non trovo una tabella valida da scaricare.");
+        alert("Errore: Nessuna tabella trovata.");
     }
 };
 
@@ -167,17 +172,17 @@ async function generateBotResponse() {
     const thinkingMsg = displayMessage("...", 'bot');
     
     try {
-        // Inviamo solo gli ultimi 8 messaggi per non confondere l'AI
-        const recentMessages = conversationHistory.slice(-8); 
+        // Manteniamo la memoria corta (ultimi 6 messaggi) per evitare confusione
+        const recentMessages = conversationHistory.slice(-6); 
         const messagesToSend = [conversationHistory[0], ...recentMessages];
 
-        const response = await fetch('[https://text.pollinations.ai/](https://text.pollinations.ai/)', {
+        const response = await fetch('https://text.pollinations.ai/', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 messages: messagesToSend, 
                 model: 'openai', 
-                seed: 123 // Seed cambiato per forzare un refresh mentale del bot
+                seed: Math.floor(Math.random() * 1000) // Random seed per risposte fresche
             }),
         });
 
@@ -185,32 +190,30 @@ async function generateBotResponse() {
         
         let aiResponse = await response.text();
         
-        // --- 1. PULIZIA PUBBLICITÀ ---
+        // --- FILTRI DI PULIZIA ---
+        
+        // 1. Rimuove pubblicità
         const adMarkers = ["Support Pollinations.AI", "Pollinations.AI", "--- **Support"];
         adMarkers.forEach(marker => {
-            if (aiResponse.includes(marker)) {
-                aiResponse = aiResponse.split(marker)[0];
-            }
+            if (aiResponse.includes(marker)) aiResponse = aiResponse.split(marker)[0];
         });
 
-        // --- 2. PULIZIA CODICE MARKDOWN (IMPORTANTE PER LE TABELLE) ---
-        // A volte l'AI scrive ```html all'inizio e ``` alla fine. Lo togliamo.
+        // 2. Rimuove markdown code blocks
         aiResponse = aiResponse.replace(/```html/g, "").replace(/```/g, "").trim();
 
-        // Salvataggio memoria
+        // -------------------------
+
         conversationHistory.push({ role: 'assistant', content: aiResponse });
         
-        // Visualizzazione
         thinkingMsg.innerHTML = aiResponse;
 
-        // Se c'è il tag <table>, mostra il bottone PDF
         if (aiResponse.includes('<table')) {
             thinkingMsg.innerHTML += `<br><button class="btn-download-pdf" onclick="downloadPDF(this)"><i class="fas fa-file-pdf"></i> Scarica PDF</button>`;
         }
 
     } catch (error) {
         console.error("Errore AI:", error);
-        thinkingMsg.textContent = "Nuvola sta riposando (Errore connessione). Riprova!";
+        thinkingMsg.textContent = "Errore di connessione. Riprova!";
         thinkingMsg.style.color = "red";
     }
 }
